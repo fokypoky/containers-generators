@@ -1,0 +1,3 @@
+кафедры, направления и группы не удаляю
+redis
+courses_description и lecture_description в последнюю очередь
