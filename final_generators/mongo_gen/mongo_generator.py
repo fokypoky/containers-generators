@@ -70,5 +70,3 @@ def put_document_to_mongo(document: {}) -> None:
 
 def generate() -> None:
     put_document_to_mongo(get_document())
-
-generate()
