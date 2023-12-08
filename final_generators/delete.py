@@ -1,4 +1,5 @@
-import elastic.delete as eld
+import elastic.delete as elad
+import mongo_gen.delete as mongen
 import postgres.postgres_cleaner as pd
 import redis_gen.delete as rd
 import neo4j_gen.delete as nd
@@ -12,5 +13,8 @@ print('redis: deleted')
 nd.delete()
 print('neo4j: deleted')
 
-eld.delete()
-print('elstic search: delete')
+elad.delete()
+print('elstic search: deleted')
+
+mongen.delete()
+print('mongo: deleted')

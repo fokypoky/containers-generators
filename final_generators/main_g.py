@@ -2,12 +2,16 @@ import neo4j_gen.neo4j_generator as n4gen
 import postgres.postgres_generator as pgen
 import elastic.courses_description as ecourses
 import elastic.lectures_description as electures
+import mongo_gen.mongo_generator as mongen
 import redis_gen.redis_g as rgen
 import datetime
 
 start_time = datetime.datetime.today()
 
 # TODO: добавить генерацию в mongo
+
+mongen.generate()
+print('mongo: university, institutes and departments generated')
 
 pgen.generate_students()
 print('pg: students generated')
