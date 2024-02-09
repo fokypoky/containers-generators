@@ -52,7 +52,7 @@ def get_pg_courses() -> []:
 def get_pg_specialities() -> []:
     specialities = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT code FROM specialties;'''
+        q = '''SELECT code FROM specialities;'''
         cursor.execute(q)
         for rd in cursor:
             specialities.append(rd[0])
@@ -61,7 +61,7 @@ def get_pg_specialities() -> []:
 def get_pg_departments() -> []: #d. title, main spec. code
     departments = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT d.title, s.code FROM departments d JOIN specialties s ON d.main_speciality_id = s.id;'''
+        q = '''SELECT d.title, s.code FROM departments d JOIN specialities s ON d.main_speciality_id = s.id;'''
         cursor.execute(q)
         for rd in cursor:
             departments.append([rd[0], rd[1]])
@@ -107,7 +107,7 @@ def put_timetable_to_neo4j() -> None:
     queries = []
 
     for tt in pg_timetable:
-        n4_insert_q += '(:Timetable{pg_id: ' + str(tt[0]) + ', group_name: "' + tt[1] + '", date: "' + tt[2] + '", pg_lecture_id: ' + str(tt[3]) + '}),'
+        n4_insert_q += '(:Timetable{pg_id: ' + str(tt[0]) + ', group_name: "' + tt[1] + '", date: "' + tt[2].replace(" ", "T") + "Z" + '", pg_lecture_id: ' + str(tt[3]) + '}),'
         counter += 1
         if(counter == 2000):
             n4_insert_q = n4_insert_q[:-1] + ';'

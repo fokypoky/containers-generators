@@ -18,3 +18,6 @@ def delete() -> None:
     execute_pg_query('DELETE FROM lectures;')
     execute_pg_query('DELETE FROM lecture_types;')
     execute_pg_query('DELETE FROM courses;')
+    execute_pg_query('DELETE FROM groups;')
+    execute_pg_query('DELETE FROM departments;')
+    execute_pg_query('DELETE FROM specialities;')

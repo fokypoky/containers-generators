@@ -9,5 +9,5 @@ def delete() -> None:
             "match_all": {}
         }
     }
-    requests.post(url='http://localhost:9200/courses/_doc/_delete_by_query', headers=headers, json=document)
-    requests.post(url='http://localhost:9200/lecture_materials/_doc/_delete_by_query', headers=headers, json=document)
+    requests.post(url='http://localhost:10103/courses/_doc/_delete_by_query', headers=headers, json=document)
+    requests.post(url='http://localhost:10103/lecture_materials/_doc/_delete_by_query', headers=headers, json=document)

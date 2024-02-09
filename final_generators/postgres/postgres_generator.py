@@ -3,6 +3,7 @@ from neo4j import GraphDatabase
 import random
 import math
 import datetime
+import os
 
 pg_connection = psycopg2.connect(
     host = 'localhost',
@@ -25,7 +26,7 @@ def execute_pg_query(query: str) -> None:
         cursor.execute(query + 'COMMIT;')
 
 def get_all_courses_from_file() -> []:
-    with open('course_titles.txt', 'r', encoding='utf-8') as file:
+    with open('./postgres/course_titles.txt', 'r', encoding='utf-8') as file:
         return list(filter(lambda s: s.strip(), file.read().split('\n')))
 
 def create_lecture(lecture: []) -> None: # lecture[0]= annotation, lecture[1]= reqs, lecture[2]= course_id, lecture[3]= type_id
@@ -69,11 +70,11 @@ def get_all_courses_ids() -> []:
     return courses
 
 def get_annotations_from_file() -> []:
-    with open('.\lecture_annotations.txt', 'r', encoding='utf-8') as file:
+    with open('./postgres/lecture_annotations.txt', 'r', encoding='utf-8') as file:
         return list(filter(lambda s: s.strip(), file.read().split('/////')))
 
 def get_reqs_from_file() -> []:
-    with open('.\lecture_req.txt', 'r', encoding='utf-8') as file:
+    with open('./postgres/lecture_req.txt', 'r', encoding='utf-8') as file:
         return list(filter(lambda s: s.strip(), file.read().split('/////')))
 
 def get_group_lectures(group_number: str) -> []:
@@ -104,8 +105,21 @@ def get_all_groups() -> []:
     return all_groups
 
 def get_names_from_file() -> []:
-    with open('.\\names.txt', 'r', encoding='utf-8') as file:
+    with open('./postgres/names.txt', 'r', encoding='utf-8') as file:
         return file.read().split('\n')
+
+def read_file(file_path: str) -> list:
+    result = []
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        for line in lines:
+            line_values = line.replace('\n', '').split(';')
+            line_values_arr = []
+            for line_value in line_values:
+                line_values_arr.append(line_value)
+            result.append(line_values_arr)
+    
+    return result
 
 def get_all_groups_ids() -> []:
     groups = []
@@ -224,3 +238,50 @@ def generate_visits() -> None:
         
         insert_query = insert_query[:-1] + ';'
         execute_pg_query(insert_query)
+
+def generate_specialities() -> None:
+    specialities = read_file('./postgres/specialities.txt')
+    with pg_connection.cursor() as cursor:
+        query = 'insert into specialities(title, code, study_duration) values '
+        for speciality in specialities:
+            query += f"""('{speciality[0]}', '{speciality[1]}', {speciality[2]}),"""
+        
+        cursor.execute(query[:-1])
+
+def generate_departments() -> None:
+    departments = read_file('./postgres/departments.txt')
+    
+    # departments processing
+    for department in departments:
+        with pg_connection.cursor() as cursor:
+            query = f"select id from specialities where code = '{department[2]}'"
+            cursor.execute(query)
+            department[2] = cursor.fetchone()[0]
+    
+    # insert into db
+    with pg_connection.cursor() as cursor:
+        query = 'insert into departments(title, institute_id, main_speciality_id) values'
+        for department in departments:
+            query += f"""('{department[0]}', {department[1]}, {department[2]}),"""
+        cursor.execute(query[:-1])
+
+def generate_groups() -> None:
+    groups = read_file('./postgres/groups.txt')
+
+    # groups processing
+    for group in groups:
+        with pg_connection.cursor() as cursor:
+            query = f"""select id from departments where title = '{group[1]}'"""
+            cursor.execute(query)
+            group[1] = cursor.fetchone()[0]
+        with pg_connection.cursor() as cursor:
+            query = f"""select id from specialities where code = '{group[2]}'"""
+            cursor.execute(query)
+            group[2] = cursor.fetchone()[0]
+    
+    # insert into db
+    with pg_connection.cursor() as cursor:
+        query = 'insert into groups(number, department_id, speciality_id) values'
+        for group in groups:
+            query += f"""('{group[0]}', {group[1]}, {group[2]}),"""
+        cursor.execute(query[:-1])

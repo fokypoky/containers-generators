@@ -11,7 +11,7 @@ pg_connection = psycopg2.connect(
         port = pgoptions.port
 )
 
-url = 'http://localhost:9200/courses/_doc'
+url = 'http://localhost:10103/courses/_doc'
 headers = {'Content-Type': 'application/json'}
 
 def get_courses() -> []: #id, title
@@ -24,7 +24,7 @@ def get_courses() -> []: #id, title
     return courses
 
 def get_descriptions() -> []: #id, description
-    with open('.\courses_description.txt', 'r', encoding='utf-8') as file:
+    with open('./elastic/courses_description.txt', 'r', encoding='utf-8') as file:
         return list(filter(lambda s: s.strip(), file.read().split('/////')))
 
 elastic_failed_titles = []

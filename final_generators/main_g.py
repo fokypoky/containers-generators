@@ -10,8 +10,19 @@ start_time = datetime.datetime.today()
 
 # TODO: добавить генерацию в mongo
 
+
+print('in mongo:')
 mongen.generate()
 print('mongo: university, institutes and departments generated')
+
+pgen.generate_specialities()
+print('pg: specialities generated')
+
+pgen.generate_departments()
+print('pg: departments generated')
+
+pgen.generate_groups()
+print('pg: groups generated')
 
 pgen.generate_students()
 print('pg: students generated')

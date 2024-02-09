@@ -11,7 +11,7 @@ pg_connection = psycopg2.connect(
         port = pgoptions.port
 )
 
-url = 'http://localhost:9200/lecture_materials/_doc'
+url = 'http://localhost:10103/lecture_materials/_doc'
 headers = {'Content-Type': 'application/json'}
 
 errors = []
@@ -26,7 +26,7 @@ def get_lecture_ids() -> []:
     return lecture_ids
 
 def get_materials() -> []:
-    with open('.\lectures_description.txt', 'r', encoding='utf-8') as file:
+    with open('./elastic/lectures_description.txt', 'r', encoding='utf-8') as file:
         return file.read().split('/////')
 
 def put_material_to_elastic(materials: str) -> str:
