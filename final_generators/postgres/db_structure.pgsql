@@ -77,10 +77,10 @@ create table visits (
 ) partition by range(date);
 
 create table visits_202305 partition of visits 
-    for values from ('2023-05-01') to ('2023-05-31');
+    for values from ('2023-05-01 00:00:00') to ('2023-05-31 23:59:59');
 
 create table visits_202306 partition of visits 
-    for values from ('2023-06-01') to ('2023-06-30');
+    for values from ('2023-06-01 00:00:00') to ('2023-06-30 23:59:59');
 
 create table visits_202307 partition of visits 
-    for values from ('2023-07-01') to ('2023-07-31');
+    for values from ('2023-07-01 00:00:00') to ('2023-07-31 23:59:59');
