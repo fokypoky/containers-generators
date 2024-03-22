@@ -16,19 +16,19 @@ neo4j_driver = GraphDatabase.driver(uri='bolt://localhost:1933',auth=('neo4j','d
 def get_students_by_group(group_id: int) -> []:
     students = []
     with pg_connection.cursor() as cursor:
-        q = f'''SELECT passbook_number FROM students WHERE group_id = {group_id}'''
+        q = f'''SELECT id, passbook_number FROM students WHERE group_id = {group_id}'''
         cursor.execute(q)
         for rd in cursor:
-            students.append(rd[0])
+            students.append([rd[0], rd[1]])
     return students
 
 def get_pg_groups() -> []:
     groups = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT g.number, d.title FROM groups g JOIN departments d on g.department_id = d.id;'''
+        q = '''SELECT g.id, g.number, d.title FROM groups g JOIN departments d on g.department_id = d.id;'''
         cursor.execute(q)
         for rd in cursor:
-            groups.append([rd[0], rd[1]])
+            groups.append([rd[0], rd[1], rd[2]])
     return groups
 
 def get_pg_groups___() -> []:
@@ -43,28 +43,28 @@ def get_pg_groups___() -> []:
 def get_pg_courses() -> []:
     courses = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT title FROM courses'''
+        q = '''SELECT id, title FROM courses'''
         cursor.execute(q)
         for rd in cursor:
-            courses.append(rd[0])
+            courses.append([rd[0], rd[1]])
     return courses
 
 def get_pg_specialities() -> []:
     specialities = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT code FROM specialities;'''
+        q = '''SELECT id, code FROM specialities;'''
         cursor.execute(q)
         for rd in cursor:
-            specialities.append(rd[0])
+            specialities.append([rd[0], rd[1]])
     return specialities
 
 def get_pg_departments() -> []: #d. title, main spec. code
     departments = []
     with pg_connection.cursor() as cursor:
-        q = '''SELECT d.title, s.code FROM departments d JOIN specialities s ON d.main_speciality_id = s.id;'''
+        q = '''SELECT d.id, d.title, s.code FROM departments d JOIN specialities s ON d.main_speciality_id = s.id;'''
         cursor.execute(q)
         for rd in cursor:
-            departments.append([rd[0], rd[1]])
+            departments.append([rd[0], rd[1], rd[2]])
     return departments
 
 def get_pg_lectures() -> []:
@@ -133,20 +133,20 @@ def put_timetable_to_neo4j() -> None:
 
 def put_departments_and_specialities_to_neo4j() -> None:
     departments = get_pg_departments() #d. title, main spec. code
-    specialities = get_pg_specialities() # code
+    specialities = get_pg_specialities() # id, code
     
-    for code in specialities:
-        n4_q = 'CREATE(s:Speciality{code: "' + code + '"});'
+    for speciality in specialities:
+        n4_q = 'CREATE(s:Speciality{pg_id: ' + str(speciality[0]) + ', code: "' + speciality[1] + '"});'
         with neo4j_driver.session() as session:
             session.run(n4_q)
     
     for department in departments:
-        n4_create_q = 'CREATE(d:Department{name: "' + department[0] + '"});'
+        n4_create_q = 'CREATE(d:Department{pg_id: ' + str(department[0]) + ', name: "' + department[1] + '"});'
         with neo4j_driver.session() as session:
             session.run(n4_create_q)
 
         department_specs = []
-        department_specs.append(department[1])
+        department_specs.append(department[2])
 
         for i in range(0, 5):
             spec = random.choice(specialities)
@@ -154,7 +154,7 @@ def put_departments_and_specialities_to_neo4j() -> None:
                 department_specs.append(spec)
 
         for ds in department_specs:
-            n4_match_q = f'MATCH(d:Department), (s:Speciality) where d.name="{department[0]}" and s.code="{ds}" CREATE (d)-[:PRODUCES]->(s)'
+            n4_match_q = f'MATCH(d:Department), (s:Speciality) where d.name="{department[1]}" and s.code="{ds}" CREATE (d)-[:PRODUCES]->(s)'
             with neo4j_driver.session() as session:
                 session.run(n4_match_q)        
 
@@ -172,37 +172,37 @@ def put_courses_to_neo4j() -> None:
     
     n4_create_q = 'CREATE'
     for course in courses:
-        n4_create_q += '(:Course{title: "' + course +'"}),'
+        n4_create_q += '(:Course{pg_id: ' + str(course[0]) + ', title: "' + course[1] +'"}),'
     
     n4_create_q = n4_create_q[:-1] + ';'
     with neo4j_driver.session() as session:
         session.run(n4_create_q)
     
-    for code in specialities:
+    for speciality in specialities:
         spec_courses = random.sample(courses, 4)
         for course in spec_courses:
-            n4_match_q = 'MATCH (s:Speciality), (c:Course) where s.code="'+ code +'" and c.title="'+ course +'" CREATE (s)-[:TEACHS]->(c);'
+            n4_match_q = 'MATCH (s:Speciality), (c:Course) where s.code="'+ speciality[1] +'" and c.title="'+ course[1] +'" CREATE (s)-[:TEACHS]->(c);'
             with neo4j_driver.session() as session:
                 session.run(n4_match_q)
 
-    groups = get_pg_groups() # [номер группы, название кафедры]
+    groups = get_pg_groups() # [id, номер группы, название кафедры]
     for group in groups:
-        group_courses = get_courses_by_department(group[1])
+        group_courses = get_courses_by_department(group[2])
         for course in group_courses:
-            n4_match_q = f'MATCH (g:Group), (c:Course) where g.name="{group[0]}" and c.title="{course}" create (g)-[:LEARNS]->(c);'
+            n4_match_q = f'MATCH (g:Group), (c:Course) where g.name="{group[1]}" and c.title="{course}" create (g)-[:LEARNS]->(c);'
             with neo4j_driver.session() as session:
                 session.run(n4_match_q)
 
 def put_group_and_students_to_neo4j() -> None:
     groups = get_pg_groups___()
     for group in groups:
-        n4_group_create_q = 'CREATE(:Group{name: "'+ group[1] +'"});'
+        n4_group_create_q = 'CREATE(:Group{pg_id: ' + str(group[0]) + ', name: "'+ group[1] +'"});'
         with neo4j_driver.session() as session:
             session.run(n4_group_create_q)
 
         students = get_students_by_group(group[0])
         for student in students:
             n4_student_q = 'MATCH (g:Group) where g.name="'+ group[1] +'" '
-            n4_student_q += 'CREATE (s:Student{passbook_number: "'+ student +'"}), (s)-[:STUDY_IN]->(g);'
+            n4_student_q += 'CREATE (s:Student{pg_id: ' + str(student[0]) + ', passbook_number: "'+ student[1] +'"}), (s)-[:STUDY_IN]->(g);'
             with neo4j_driver.session() as session:
                 session.run(n4_student_q)

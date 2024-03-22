@@ -160,6 +160,7 @@ def generate_courses() -> None:
 # WARNING: перед запуском, в neo4j группы должны быть связаны с курсами
 def generate_timetable() -> None:
     all_groups = get_all_groups() # id, number, department title
+    print('groups count', len(all_groups)) 
     pg_insert_q = 'INSERT INTO timetable(group_id, lecture_id, date) VALUES'
     for month in range(5, 7):
         for group in all_groups:
@@ -167,7 +168,7 @@ def generate_timetable() -> None:
             group_timetable = {} # дата - ключ. позволит избежать ситуации, 
                                  #когда у группы 2 пары в одно и то же время
             group_lectures_per_day = math.ceil(len(group_lectures) / 7)
-
+            print('group lectures per day', group_lectures_per_day)
             for day in range(1,31):
                 for i in range(0, group_lectures_per_day):
                     hour = random.randrange(9, 21)

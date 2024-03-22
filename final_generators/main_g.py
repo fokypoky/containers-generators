@@ -10,11 +10,6 @@ start_time = datetime.datetime.today()
 
 # TODO: добавить генерацию в mongo
 
-
-print('in mongo:')
-mongen.generate()
-print('mongo: university, institutes and departments generated')
-
 pgen.generate_specialities()
 print('pg: specialities generated')
 
@@ -62,6 +57,11 @@ print('pg: visits generated')
 
 n4gen.put_timetable_to_neo4j()
 print('neo4j: timetable inserted')
+
+print('in mongo:')
+mongen.generate()
+print('mongo: university, institutes and departments generated')
+
 
 end_time = datetime.datetime.today()
 print(f'started at {start_time.hour}:{start_time.minute}:{start_time.second}')
